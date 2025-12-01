@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1764614519 source:c:\users\user\documents\github\pl2_eedd\pl2\main.cpp
+	"ccontrol.h"
+
+1764614338 c:\users\user\documents\github\pl2_eedd\pl2\include\ccontrol.h
+	<iostream>
+	<cstring>
+	<cstdlib>
+	<cstdio>
+	<ctime>
+	<iomanip>
+
+1764614251 source:c:\users\user\documents\github\pl2_eedd\pl2\src\ccontrol.cpp
+	"ccontrol.h"
+

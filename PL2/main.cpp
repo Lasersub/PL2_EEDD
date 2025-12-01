@@ -28,18 +28,32 @@ int main() {
     }
 
     // 2. Generar Pedidos
-    cout << "\nGenerando pedidos aleatorios..." << endl;
+    cout << "\nCreando los siguientes pedidos nuevos:" << endl;
+
+    // --- CABECERA DE LA TABLA ---
+    cout << "---------------------------------------------------------------------------" << endl;
+    cout << "|" << left << setw(12) << "ID Libreria"
+         << "|" << setw(10) << "ID Pedido"
+         << "|" << setw(10) << "Cod Libro"
+         << "|" << setw(15) << "Materia"
+         << "|" << setw(9)  << "Unidades"
+         << "|" << setw(12) << "Fecha" << "|" << endl;
+    cout << "---------------------------------------------------------------------------" << endl;
+
     for (int i = 0; i < N_PEDIDOS; i++) {
         bufferPedidos[i] = generarPedidoAleatorio();
         // Asignar a una librería existente al azar
         bufferPedidos[i].id_libreria = idsValidos[rand() % N_LIBRERIAS];
 
-        cout << "Pedido " << bufferPedidos[i].id_pedido
-             << " para Libreria " << bufferPedidos[i].id_libreria << endl;
+        // --- FILA DE LA TABLA ---
+        cout << "|" << right << setw(11) << bufferPedidos[i].id_libreria << " " // ID Libreria alineado a la dcha
+             << "|" << left  << setw(10) << bufferPedidos[i].id_pedido
+             << "|" << setw(10) << bufferPedidos[i].cod_libro
+             << "|" << setw(15) << bufferPedidos[i].materia
+             << "|" << right << setw(8) << bufferPedidos[i].unidades << " " // Unidades alineado a la dcha
+             << "|" << left  << setw(12) << bufferPedidos[i].fecha_envio << "|" << endl;
     }
-
-    cout << "\nPresione ENTER para distribuir los pedidos..." << endl;
-    cin.get();
+    cout << "---------------------------------------------------------------------------" << endl;
 
     // 3. Distribuir
     for (int i = 0; i < N_PEDIDOS; i++) {

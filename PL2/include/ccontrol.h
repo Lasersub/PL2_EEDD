@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
+#include <iomanip>
 
 using namespace std;
 
@@ -40,6 +41,7 @@ public:
     void insertar(Pedido p);
     void borrar(const char* id_pedido); // Usamos const char* por seguridad
     NodoPedido* buscar(const char* id_pedido);
+    int getNumeroPedidos();
     void mostrar();
     bool estaVacia();
     NodoPedido* extraer(const char* id_pedido);

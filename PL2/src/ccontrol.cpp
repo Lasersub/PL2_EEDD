@@ -118,22 +118,41 @@ NodoPedido* ListaPedidos::buscar(const char* id_pedido) {
     return NULL;
 }
 
+int ListaPedidos::getNumeroPedidos() {
+    int count = 0;
+    NodoPedido* aux = cabecera;
+    while(aux != NULL) {
+        count++;
+        aux = aux->sig;
+    }
+    return count;
+}
+
 void ListaPedidos::mostrar() {
     NodoPedido* actual = cabecera;
     if (actual == NULL) {
         cout << "   (Sin pedidos)" << endl;
         return;
     }
-    cout << "   ------------------------------------------------------------" << endl;
+
+    // Cabecera de la tabla local
+    cout << "   --------------------------------------------------------------" << endl;
+    cout << "   |" << left << setw(10) << "ID Pedido"
+         << "|" << setw(10) << "Cod Libro"
+         << "|" << setw(15) << "Materia"
+         << "|" << setw(9)  << "Unidades"
+         << "|" << setw(12) << "Fecha" << "|" << endl;
+    cout << "   --------------------------------------------------------------" << endl;
+
     while (actual != NULL) {
-        cout << "   Pedido: " << actual->datos.id_pedido
-             << " | Libro: " << actual->datos.cod_libro
-             << " | Mat: " << actual->datos.materia
-             << " | Unds: " << actual->datos.unidades
-             << " | Fecha: " << actual->datos.fecha_envio << endl;
+        cout << "   |" << left << setw(10) << actual->datos.id_pedido
+             << "|" << setw(10) << actual->datos.cod_libro
+             << "|" << setw(15) << actual->datos.materia
+             << "|" << right << setw(8) << actual->datos.unidades << " "
+             << "|" << left  << setw(12) << actual->datos.fecha_envio << "|" << endl;
         actual = actual->sig;
     }
-    cout << "   ------------------------------------------------------------" << endl;
+    cout << "   --------------------------------------------------------------" << endl;
 }
 
 bool ListaPedidos::estaVacia() {
@@ -282,13 +301,24 @@ void ABBLibrerias::mostrar() {
     mostrar(raiz);
 }
 
+// Función auxiliar interna recursiva
 void ABBLibrerias::mostrar(NodoLibreria* nodo) {
     if (nodo != NULL) {
         mostrar(nodo->izq);
-        cout << "Libreria ID: " << nodo->datos.id_libreria
-             << " (" << nodo->datos.localidad << ")" << endl;
-        nodo->datos.pedidos.mostrar();
-        cout << endl;
+
+        // Calculamos cuántos pedidos tiene esta librería
+        int numPedidos = nodo->datos.pedidos.getNumeroPedidos(); // Necesitas añadir este método o contarlos aquí
+
+        // Si no tienes el método getNumeroPedidos en la clase lista, cuenta manual:
+        /* int numPedidos = 0;
+        NodoPedido* aux = nodo->datos.pedidos.getCabecera();
+        while(aux){ numPedidos++; aux=aux->sig; }
+        */
+
+        cout << "ID: " << left << setw(5) << nodo->datos.id_libreria
+             << " Localidad: " << setw(15) << nodo->datos.localidad
+             << " Num Pedidos: " << numPedidos << endl;
+
         mostrar(nodo->der);
     }
 }
