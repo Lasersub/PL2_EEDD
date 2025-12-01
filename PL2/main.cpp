@@ -89,19 +89,41 @@ int main() {
             case 1: {
                 Libreria l;
                 cout << "ID Libreria (3 cifras): "; cin >> l.id_libreria;
-                cout << "Localidad: "; cin >> l.localidad;
-                arbolReal.insertar(l);
-                cout << "Libreria insertada." << endl;
+
+                // --- MODIFICACION: Verificamos si existe ---
+                if (arbolReal.buscar(l.id_libreria) != NULL) {
+                    cout << "ERROR: Ya existe una libreria con el ID " << l.id_libreria << "." << endl;
+                } else {
+                    cout << "Localidad: "; cin >> l.localidad;
+                    arbolReal.insertar(l);
+                    cout << "Libreria insertada correctamente." << endl;
+                }
+                // -------------------------------------------
                 break;
             }
             case 2: {
+                // MOSTRAR LIBRERIAS DISPONIBLES
+                cout << "\n--- Librerias Disponibles ---" << endl;
+                arbolReal.mostrar();
+
                 int id;
                 cout << "ID Libreria a borrar: "; cin >> id;
-                arbolReal.borrar(id);
-                cout << "Operacion de borrado finalizada." << endl;
+
+                // --- MODIFICACION: Verificamos si existe antes de borrar ---
+                if (arbolReal.buscar(id) != NULL) {
+                    arbolReal.borrar(id);
+                    cout << "Libreria con ID " << id << " borrada correctamente." << endl;
+                } else {
+                    cout << "ERROR: Librería con ID " << id << " no encontrada." << endl;
+                }
+                // -----------------------------------------------------------
                 break;
             }
             case 3: {
+                // MOSTRAR LIBRERIAS DISPONIBLES
+                cout << "\n--- Librerias Disponibles ---" << endl;
+                arbolReal.mostrar();
+
                 int id;
                 cout << "ID Libreria: "; cin >> id;
                 Libreria* lib = arbolReal.buscar(id);
@@ -109,7 +131,8 @@ int main() {
                     cout << "Pedidos de " << lib->localidad << ":" << endl;
                     lib->pedidos.mostrar();
                 } else {
-                    cout << "Libreria no encontrada." << endl;
+                    // --- MODIFICACION: Mostrar ID en el error ---
+                    cout << "ERROR: Libreria con ID " << id << " no encontrada." << endl;
                 }
                 break;
             }
@@ -119,7 +142,7 @@ int main() {
                 Pedido* p = arbolReal.buscarPedido(idPedido);
                 if (p != NULL) {
                     cout << "Pedido encontrado: " << p->id_pedido
-                         << " en libreria " << p->id_libreria << endl;
+                          << " en libreria " << p->id_libreria << endl;
                 } else {
                     cout << "Pedido no encontrado." << endl;
                 }
@@ -136,6 +159,10 @@ int main() {
                 break;
             }
             case 6: {
+                // MOSTRAR LIBRERIAS DISPONIBLES
+                cout << "\n--- Librerias Disponibles ---" << endl;
+                arbolReal.mostrar();
+
                 int idOrigen, idDestino;
                 char idPedido[10];
                 cout << "ID Libreria Origen: "; cin >> idOrigen;
@@ -157,7 +184,9 @@ int main() {
                         cout << "Pedido no encontrado en origen." << endl;
                     }
                 } else {
-                    cout << "Libreria origen o destino no encontrada." << endl;
+                    // --- MODIFICACION: Mostrar IDs en el error ---
+                    if (!origen) cout << "ERROR: Libreria Origen con ID " << idOrigen << " no encontrada." << endl;
+                    if (!destino) cout << "ERROR: Libreria Destino con ID " << idDestino << " no encontrada." << endl;
                 }
                 break;
             }
@@ -171,8 +200,6 @@ int main() {
                     Pedido p = generarPedidoAleatorio();
                     // Intentamos asignarlo a una librería válida existente
                     p.id_libreria = idsValidos[rand() % N_LIBRERIAS];
-                    // Nota: si borraste la librería de idsValidos, esto podría fallar visualmente
-                    // pero la función distribuir simplemente lo ignorará si no encuentra el nodo.
                     arbolReal.distribuirPedido(p);
                 }
                 cout << "Pedidos distribuidos." << endl;
