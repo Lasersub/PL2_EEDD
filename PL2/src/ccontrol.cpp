@@ -307,13 +307,7 @@ void ABBLibrerias::mostrar(NodoLibreria* nodo) {
         mostrar(nodo->izq);
 
         // Calculamos cuántos pedidos tiene esta librería
-        int numPedidos = nodo->datos.pedidos.getNumeroPedidos(); // Necesitas añadir este método o contarlos aquí
-
-        // Si no tienes el método getNumeroPedidos en la clase lista, cuenta manual:
-        /* int numPedidos = 0;
-        NodoPedido* aux = nodo->datos.pedidos.getCabecera();
-        while(aux){ numPedidos++; aux=aux->sig; }
-        */
+        int numPedidos = nodo->datos.pedidos.getNumeroPedidos();
 
         cout << "ID: " << left << setw(5) << nodo->datos.id_libreria
              << " Localidad: " << setw(15) << nodo->datos.localidad
