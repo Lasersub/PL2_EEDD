@@ -75,6 +75,7 @@ int main() {
         cout << "6- Mover pedido entre librerias" << endl;
         cout << "7- Estadisticas" << endl;
         cout << "8- Generar mas pedidos" << endl;
+        cout << "9- Mostrar librerias inorden" << endl;
         cout << "0- Salir" << endl;
         cout << "Opcion: ";
 
@@ -205,6 +206,13 @@ int main() {
                 cout << "Pedidos distribuidos." << endl;
                 break;
             }
+            // --- NUEVO CASO 9 ---
+            case 9: {
+                cout << "\n--- Listado de Librerias (Inorden) ---" << endl;
+                arbolReal.mostrar(); // Esta función ya implementa el recorrido inorden
+                break;
+            }
+            // --------------------
             case 0:
                 cout << "Saliendo..." << endl;
                 break;
