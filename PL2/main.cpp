@@ -89,17 +89,32 @@ int main() {
         switch (opcion) {
             case 1: {
                 Libreria l;
-                cout << "ID Libreria (3 cifras): "; cin >> l.id_libreria;
+                bool idValido = false;
 
-                // --- MODIFICACION: Verificamos si existe ---
+                // Bucle de validación para el ID
+                do {
+                    cout << "ID Libreria (3 cifras, 100-999): ";
+                    if (!(cin >> l.id_libreria)) { // Validación de tipo (si mete letras)
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                        cout << " [ERROR] Entrada no numerica." << endl;
+                        l.id_libreria = 0; // Forzar repetición
+                    } else if (l.id_libreria < 100 || l.id_libreria > 999) { // Validación de rango
+                        cout << " [ERROR] El ID debe estar entre 100 y 999." << endl;
+                    } else {
+                        idValido = true;
+                    }
+                } while (!idValido);
+
+                // Verificamos si existe en el árbol
                 if (arbolReal.buscar(l.id_libreria) != NULL) {
-                    cout << "ERROR: Ya existe una libreria con el ID " << l.id_libreria << "." << endl;
+                    cout << " [ERROR] Ya existe una libreria con el ID " << l.id_libreria << "." << endl;
                 } else {
-                    cout << "Localidad: "; cin >> l.localidad;
+                    cout << "Localidad (una sola palabra, use guiones bajos_si_necesario): ";
+                    cin >> l.localidad; // Ojo: cin corta en los espacios
                     arbolReal.insertar(l);
                     cout << "Libreria insertada correctamente." << endl;
                 }
-                // -------------------------------------------
                 break;
             }
             case 2: {
@@ -197,13 +212,37 @@ int main() {
             }
             case 8: {
                 cout << "Generando " << N_PEDIDOS << " nuevos pedidos..." << endl;
+                int distribuidos = 0;
+
                 for (int i = 0; i < N_PEDIDOS; i++) {
                     Pedido p = generarPedidoAleatorio();
-                    // Intentamos asignarlo a una librería válida existente
-                    p.id_libreria = idsValidos[rand() % N_LIBRERIAS];
-                    arbolReal.distribuirPedido(p);
+
+                    // INTENTO DE ASIGNACIÓN ROBUSTO
+                    // Intentamos asignar un ID del array, pero verificamos si sigue existiendo en el árbol.
+                    // Si la librería fue borrada, buscamos otra al azar hasta encontrar una viva.
+
+                    int intentos = 0;
+                    bool asignado = false;
+
+                    while (!asignado && intentos < 20) {
+                        int idCandidato = idsValidos[rand() % N_LIBRERIAS];
+                        if (arbolReal.buscar(idCandidato) != NULL) {
+                            p.id_libreria = idCandidato;
+                            asignado = true;
+                        }
+                        intentos++;
+                    }
+
+                    if (asignado) {
+                        arbolReal.distribuirPedido(p);
+                        distribuidos++;
+                    }
                 }
-                cout << "Pedidos distribuidos." << endl;
+
+                if (distribuidos < N_PEDIDOS) {
+                    cout << "AVISO: Algunas librerias fueron borradas y costó asignar todos los pedidos." << endl;
+                }
+                cout << "Se han distribuido " << distribuidos << " pedidos correctamente." << endl;
                 break;
             }
             // --- NUEVO CASO 9 ---
