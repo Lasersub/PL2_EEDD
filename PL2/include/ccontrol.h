@@ -60,6 +60,12 @@ struct NodoLibreria {
     NodoLibreria* der;
 };
 
+// Estructura auxiliar para contar estadísticas (Interna para el cálculo)
+struct RegistroConteo {
+    char clave[20]; // Servirá para cod_libro o materia
+    int totalUnidades;
+};
+
 class ABBLibrerias {
 private:
     NodoLibreria* raiz;
@@ -77,6 +83,12 @@ private:
     Pedido* buscarPedido(NodoLibreria* nodo, const char* id_pedido);
     bool borrarPedido(NodoLibreria* nodo, const char* id_pedido);
 
+    // --- NUEVO HELPER DE ESTADÍSTICAS ---
+    void recolectarEstadisticas(NodoLibreria* nodo,
+                                int& maxPedidosLib, int& idLibMax, char* locLibMax,
+                                RegistroConteo* libros, int& numLibros,
+                                RegistroConteo* materias, int& numMaterias);
+
 public:
     ABBLibrerias();
     ~ABBLibrerias();
@@ -86,7 +98,10 @@ public:
     Libreria* buscar(int id_libreria);
     void mostrar();
     void distribuirPedido(Pedido p);
+
+    // Función modificada para mostrar el reporte completo
     void mostrarEstadisticas();
+
     bool estaVacia();
 
     // Métodos globales para pedidos

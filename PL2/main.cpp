@@ -175,34 +175,47 @@ int main() {
                 break;
             }
             case 6: {
-                // MOSTRAR LIBRERIAS DISPONIBLES
-                cout << "\n--- Librerias Disponibles ---" << endl;
-                arbolReal.mostrar();
-
-                int idOrigen, idDestino;
                 char idPedido[10];
-                cout << "ID Libreria Origen: "; cin >> idOrigen;
-                cout << "ID Libreria Destino: "; cin >> idDestino;
-                cout << "ID Pedido: "; cin >> idPedido;
+                cout << "ID Pedido a mover: "; cin >> idPedido;
 
-                Libreria* origen = arbolReal.buscar(idOrigen);
-                Libreria* destino = arbolReal.buscar(idDestino);
+                // 1. Buscamos el pedido globalmente para saber dónde está
+                Pedido* pFound = arbolReal.buscarPedido(idPedido);
 
-                if (origen && destino) {
-                    NodoPedido* nodoP = origen->pedidos.extraer(idPedido);
-                    if (nodoP != NULL) {
-                        // Actualizar ID de librería en el pedido
-                        nodoP->datos.id_libreria = idDestino;
-                        destino->pedidos.insertar(nodoP->datos);
-                        delete nodoP; // Borramos el nodo viejo, ya copiamos los datos al nuevo
-                        cout << "Pedido movido." << endl;
+                if (pFound != NULL) {
+                    int idOrigen = pFound->id_libreria;
+                    cout << "Pedido encontrado en la libreria origen: " << idOrigen << endl;
+
+                    // 2. Pedimos destino
+                    cout << "\n--- Librerias Disponibles ---" << endl;
+                    arbolReal.mostrar();
+
+                    int idDestino;
+                    cout << "ID Libreria Destino: "; cin >> idDestino;
+
+                    if (idOrigen == idDestino) {
+                        cout << "El pedido ya se encuentra en esa libreria." << endl;
                     } else {
-                        cout << "Pedido no encontrado en origen." << endl;
+                        Libreria* origen = arbolReal.buscar(idOrigen);
+                        Libreria* destino = arbolReal.buscar(idDestino);
+
+                        if (destino != NULL && origen != NULL) {
+                            // Extraemos el nodo de la lista origen
+                            NodoPedido* nodoP = origen->pedidos.extraer(idPedido);
+                            if (nodoP != NULL) {
+                                // Actualizamos y movemos
+                                nodoP->datos.id_libreria = idDestino;
+                                destino->pedidos.insertar(nodoP->datos);
+                                delete nodoP;
+                                cout << "Pedido movido exitosamente de " << idOrigen << " a " << idDestino << "." << endl;
+                            } else {
+                                cout << "Error al extraer el pedido." << endl;
+                            }
+                        } else {
+                            if (destino == NULL) cout << "ERROR: Libreria Destino con ID " << idDestino << " no encontrada." << endl;
+                        }
                     }
                 } else {
-                    // --- MODIFICACION: Mostrar IDs en el error ---
-                    if (!origen) cout << "ERROR: Libreria Origen con ID " << idOrigen << " no encontrada." << endl;
-                    if (!destino) cout << "ERROR: Libreria Destino con ID " << idDestino << " no encontrada." << endl;
+                    cout << "ERROR: Pedido con ID " << idPedido << " no encontrado en ninguna libreria." << endl;
                 }
                 break;
             }
@@ -212,37 +225,33 @@ int main() {
             }
             case 8: {
                 cout << "Generando " << N_PEDIDOS << " nuevos pedidos..." << endl;
-                int distribuidos = 0;
+
+                // --- CABECERA DE LA TABLA (IGUAL QUE AL INICIO) ---
+                cout << "---------------------------------------------------------------------------" << endl;
+                cout << "|" << left << setw(12) << "ID Libreria"
+                     << "|" << setw(10) << "ID Pedido"
+                     << "|" << setw(10) << "Cod Libro"
+                     << "|" << setw(15) << "Materia"
+                     << "|" << setw(9)  << "Unidades"
+                     << "|" << setw(12) << "Fecha" << "|" << endl;
+                cout << "---------------------------------------------------------------------------" << endl;
 
                 for (int i = 0; i < N_PEDIDOS; i++) {
                     Pedido p = generarPedidoAleatorio();
+                    p.id_libreria = idsValidos[rand() % N_LIBRERIAS];
 
-                    // INTENTO DE ASIGNACIÓN ROBUSTO
-                    // Intentamos asignar un ID del array, pero verificamos si sigue existiendo en el árbol.
-                    // Si la librería fue borrada, buscamos otra al azar hasta encontrar una viva.
+                    // --- IMPRIMIR FILA ---
+                    cout << "|" << right << setw(11) << p.id_libreria << " "
+                         << "|" << left  << setw(10) << p.id_pedido
+                         << "|" << setw(10) << p.cod_libro
+                         << "|" << setw(15) << p.materia
+                         << "|" << right << setw(8) << p.unidades << " "
+                         << "|" << left  << setw(12) << p.fecha_envio << "|" << endl;
 
-                    int intentos = 0;
-                    bool asignado = false;
-
-                    while (!asignado && intentos < 20) {
-                        int idCandidato = idsValidos[rand() % N_LIBRERIAS];
-                        if (arbolReal.buscar(idCandidato) != NULL) {
-                            p.id_libreria = idCandidato;
-                            asignado = true;
-                        }
-                        intentos++;
-                    }
-
-                    if (asignado) {
-                        arbolReal.distribuirPedido(p);
-                        distribuidos++;
-                    }
+                    arbolReal.distribuirPedido(p);
                 }
-
-                if (distribuidos < N_PEDIDOS) {
-                    cout << "AVISO: Algunas librerias fueron borradas y costó asignar todos los pedidos." << endl;
-                }
-                cout << "Se han distribuido " << distribuidos << " pedidos correctamente." << endl;
+                cout << "---------------------------------------------------------------------------" << endl;
+                cout << "Pedidos distribuidos correctamente." << endl;
                 break;
             }
             // --- NUEVO CASO 9 ---
@@ -253,7 +262,7 @@ int main() {
             }
             // --------------------
             case 0:
-                cout << "Saliendo..." << endl;
+                cout << "\nSaliendo..." << endl;
                 break;
             default:
                 cout << "Opcion no valida." << endl;

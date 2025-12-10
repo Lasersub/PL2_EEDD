@@ -317,6 +317,125 @@ void ABBLibrerias::mostrar(NodoLibreria* nodo) {
     }
 }
 
+// Lógica de las estadísticas
+void ABBLibrerias::mostrarEstadisticas() {
+    if (raiz == NULL) {
+        cout << "El arbol esta vacio." << endl;
+        return;
+    }
+
+
+    cout << "\n--- ESTADISTICAS TOTALES ---" << endl;
+
+    // Variables para 1. Librería con más ventas (N pedidos)
+    int maxPedidosLib = -1;
+    int idLibMax = 0;
+    char locLibMax[20] = "N/A";
+
+    // Arrays temporales para acumular datos de TODOS los libros y materias del árbol
+    // Asumimos un máximo razonable para la práctica (100 libros distintos, 100 materias distintas)
+    RegistroConteo listaLibros[100];
+    int numLibros = 0;
+
+    RegistroConteo listaMaterias[100];
+    int numMaterias = 0;
+
+    // Llamada recursiva que llena todos los datos
+    recolectarEstadisticas(raiz, maxPedidosLib, idLibMax, locLibMax, listaLibros, numLibros, listaMaterias, numMaterias);
+
+    // 1. Mostrar Librería Top
+    cout << "1. LIBRERIA CON MAS VENTAS:" << endl;
+    cout << "   ID: " << idLibMax << " (" << locLibMax << ")" << endl;
+    cout << "   Total Pedidos: " << maxPedidosLib << endl << endl;
+
+    // 2. Calcular Libro más vendido (Unidades totales)
+    int maxUnidadesLibro = -1;
+    char codLibroTop[7] = "N/A";
+
+    for(int i = 0; i < numLibros; i++) {
+        if (listaLibros[i].totalUnidades > maxUnidadesLibro) {
+            maxUnidadesLibro = listaLibros[i].totalUnidades;
+            strcpy(codLibroTop, listaLibros[i].clave);
+        }
+    }
+    cout << "2. LIBRO MAS VENDIDO:" << endl;
+    cout << "   Codigo: " << codLibroTop << endl;
+    cout << "   Unidades totales: " << (maxUnidadesLibro == -1 ? 0 : maxUnidadesLibro) << endl << endl;
+
+    // 3. Calcular Materia más exitosa (Unidades totales)
+    int maxUnidadesMateria = -1;
+    char materiaTop[20] = "N/A";
+
+    for(int i = 0; i < numMaterias; i++) {
+        if (listaMaterias[i].totalUnidades > maxUnidadesMateria) {
+            maxUnidadesMateria = listaMaterias[i].totalUnidades;
+            strcpy(materiaTop, listaMaterias[i].clave);
+        }
+    }
+    cout << "3. MATERIA MAS EXITOSA:" << endl;
+    cout << "   Area: " << materiaTop << endl;
+    cout << "   Unidades totales: " << (maxUnidadesMateria == -1 ? 0 : maxUnidadesMateria) << endl;
+
+}
+
+void ABBLibrerias::recolectarEstadisticas(NodoLibreria* nodo,
+                                          int& maxPedidosLib, int& idLibMax, char* locLibMax,
+                                          RegistroConteo* libros, int& numLibros,
+                                          RegistroConteo* materias, int& numMaterias) {
+    if (nodo != NULL) {
+        // Recorrido Inorden (o cualquiera sirve para acumular)
+        recolectarEstadisticas(nodo->izq, maxPedidosLib, idLibMax, locLibMax, libros, numLibros, materias, numMaterias);
+
+        // --- Analizar Librería Actual ---
+
+        // 1. Chequear si es la librería con más pedidos
+        int totalPedidos = nodo->datos.pedidos.getNumeroPedidos();
+        if (totalPedidos > maxPedidosLib) {
+            maxPedidosLib = totalPedidos;
+            idLibMax = nodo->datos.id_libreria;
+            strcpy(locLibMax, nodo->datos.localidad);
+        }
+
+        // 2. Recorrer los pedidos de esta librería para sumar libros y materias
+        NodoPedido* aux = nodo->datos.pedidos.getCabecera();
+        while (aux != NULL) {
+            // A) Acumular LIBRO
+            bool encontradoLibro = false;
+            for(int i=0; i<numLibros; i++) {
+                if(strcmp(libros[i].clave, aux->datos.cod_libro) == 0) {
+                    libros[i].totalUnidades += aux->datos.unidades;
+                    encontradoLibro = true;
+                    break;
+                }
+            }
+            if (!encontradoLibro) {
+                strcpy(libros[numLibros].clave, aux->datos.cod_libro);
+                libros[numLibros].totalUnidades = aux->datos.unidades;
+                numLibros++;
+            }
+
+            // B) Acumular MATERIA
+            bool encontradoMateria = false;
+            for(int i=0; i<numMaterias; i++) {
+                if(strcmp(materias[i].clave, aux->datos.materia) == 0) {
+                    materias[i].totalUnidades += aux->datos.unidades;
+                    encontradoMateria = true;
+                    break;
+                }
+            }
+            if (!encontradoMateria) {
+                strcpy(materias[numMaterias].clave, aux->datos.materia);
+                materias[numMaterias].totalUnidades = aux->datos.unidades;
+                numMaterias++;
+            }
+
+            aux = aux->sig;
+        }
+
+        recolectarEstadisticas(nodo->der, maxPedidosLib, idLibMax, locLibMax, libros, numLibros, materias, numMaterias);
+    }
+}
+
 void ABBLibrerias::distribuirPedido(Pedido p) {
     distribuir(raiz, p);
 }
@@ -330,34 +449,6 @@ void ABBLibrerias::distribuir(NodoLibreria* nodo, Pedido p) {
         distribuir(nodo->izq, p);
     } else {
         distribuir(nodo->der, p);
-    }
-}
-
-void ABBLibrerias::mostrarEstadisticas() {
-    int maxVentas = -1;
-    char nombreMax[20] = "N/A";
-    estadisticas(raiz, maxVentas, nombreMax);
-    cout << "Libreria con mas ventas: " << nombreMax << " (" << maxVentas << " pedidos)" << endl;
-}
-
-void ABBLibrerias::estadisticas(NodoLibreria* nodo, int& maxVentas, char* nombreMaxVentas) {
-    if (nodo != NULL) {
-        estadisticas(nodo->izq, maxVentas, nombreMaxVentas);
-
-        // Contar pedidos
-        int count = 0;
-        NodoPedido* aux = nodo->datos.pedidos.getCabecera();
-        while(aux != NULL) {
-            count++;
-            aux = aux->sig;
-        }
-
-        if (count > maxVentas) {
-            maxVentas = count;
-            strcpy(nombreMaxVentas, nodo->datos.localidad);
-        }
-
-        estadisticas(nodo->der, maxVentas, nombreMaxVentas);
     }
 }
 
