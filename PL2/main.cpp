@@ -154,13 +154,35 @@ int main() {
             }
             case 4: {
                 char idPedido[10];
-                cout << "ID Pedido: "; cin >> idPedido;
+                cout << "ID Pedido a buscar: "; cin >> idPedido;
                 Pedido* p = arbolReal.buscarPedido(idPedido);
+
                 if (p != NULL) {
-                    cout << "Pedido encontrado: " << p->id_pedido
-                          << " en libreria " << p->id_libreria << endl;
+                    cout << "\n[EXITO] Pedido encontrado con los siguientes detalles:" << endl;
+                    // Ajustamos el ancho de los guiones para que cuadren con las nuevas medidas
+                    cout << "-----------------------------------------------------------------------------" << endl;
+
+                    // CORRECCIÓN AQUÍ: Aumentamos UBICACION a 14 para que quepa "Lib: XXX "
+                    cout << "|" << left << setw(14) << "UBICACION"
+                         << "|" << setw(10) << "ID Pedido"
+                         << "|" << setw(10) << "Cod Libro"
+                         << "|" << setw(15) << "Materia"
+                         << "|" << setw(9)  << "Unidades"
+                         << "|" << setw(12) << "Fecha" << "|" << endl;
+
+                    cout << "-----------------------------------------------------------------------------" << endl;
+
+                    // Fila de datos alineada
+                    cout << "| Lib: " << right << setw(7) << p->id_libreria << " "
+                         << "|" << left  << setw(10) << p->id_pedido
+                         << "|" << setw(10) << p->cod_libro
+                         << "|" << setw(15) << p->materia
+                         << "|" << right << setw(8) << p->unidades << " "
+                         << "|" << left  << setw(12) << p->fecha_envio << "|" << endl;
+
+                    cout << "-----------------------------------------------------------------------------" << endl;
                 } else {
-                    cout << "Pedido no encontrado." << endl;
+                    cout << "\n[ERROR] No se ha encontrado ningun pedido con el ID: " << idPedido << endl;
                 }
                 break;
             }
@@ -267,6 +289,15 @@ int main() {
             default:
                 cout << "Opcion no valida." << endl;
         }
+
+        // --- AÑADIDO: Pausa para que el usuario pueda leer el resultado ---
+        if (opcion != 0) {
+            cout << "\nPresione ENTER para volver al menu...";
+            cin.ignore(1000, '\n'); // Limpiar buffer previo
+            cin.get(); // Esperar intro
+            cout << endl;
+        }
+
     } while (opcion != 0);
 
     return 0;
