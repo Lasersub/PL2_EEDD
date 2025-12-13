@@ -125,14 +125,13 @@ int main() {
                 int id;
                 cout << "ID Libreria a borrar: "; cin >> id;
 
-                // --- MODIFICACION: Verificamos si existe antes de borrar ---
+                // Verificamos si existe antes de borrar ---
                 if (arbolReal.buscar(id) != NULL) {
                     arbolReal.borrar(id);
                     cout << "Libreria con ID " << id << " borrada correctamente." << endl;
                 } else {
                     cout << "ERROR: Librería con ID " << id << " no encontrada." << endl;
                 }
-                // -----------------------------------------------------------
                 break;
             }
             case 3: {
@@ -147,7 +146,7 @@ int main() {
                     cout << "Pedidos de " << lib->localidad << ":" << endl;
                     lib->pedidos.mostrar();
                 } else {
-                    // --- MODIFICACION: Mostrar ID en el error ---
+                    // Mostrar ID en el error
                     cout << "ERROR: Libreria con ID " << id << " no encontrada." << endl;
                 }
                 break;
@@ -159,10 +158,8 @@ int main() {
 
                 if (p != NULL) {
                     cout << "\n[EXITO] Pedido encontrado con los siguientes detalles:" << endl;
-                    // Ajustamos el ancho de los guiones para que cuadren con las nuevas medidas
                     cout << "-----------------------------------------------------------------------------" << endl;
 
-                    // CORRECCIÓN AQUÍ: Aumentamos UBICACION a 14 para que quepa "Lib: XXX "
                     cout << "|" << left << setw(14) << "UBICACION"
                          << "|" << setw(10) << "ID Pedido"
                          << "|" << setw(10) << "Cod Libro"
@@ -172,7 +169,6 @@ int main() {
 
                     cout << "-----------------------------------------------------------------------------" << endl;
 
-                    // Fila de datos alineada
                     cout << "| Lib: " << right << setw(7) << p->id_libreria << " "
                          << "|" << left  << setw(10) << p->id_pedido
                          << "|" << setw(10) << p->cod_libro
@@ -276,13 +272,11 @@ int main() {
                 cout << "Pedidos distribuidos correctamente." << endl;
                 break;
             }
-            // --- NUEVO CASO 9 ---
             case 9: {
                 cout << "\n--- Listado de Librerias (Inorden) ---" << endl;
                 arbolReal.mostrar(); // Esta función ya implementa el recorrido inorden
                 break;
             }
-            // --------------------
             case 0:
                 cout << "\nSaliendo..." << endl;
                 break;
@@ -290,7 +284,7 @@ int main() {
                 cout << "Opcion no valida." << endl;
         }
 
-        // --- AÑADIDO: Pausa para que el usuario pueda leer el resultado ---
+        // Pausa para que el usuario pueda leer el resultado ---
         if (opcion != 0) {
             cout << "\nPresione ENTER para volver al menu...";
             cin.ignore(1000, '\n'); // Limpiar buffer previo

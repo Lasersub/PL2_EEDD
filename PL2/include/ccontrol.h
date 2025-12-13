@@ -83,7 +83,7 @@ private:
     Pedido* buscarPedido(NodoLibreria* nodo, const char* id_pedido);
     bool borrarPedido(NodoLibreria* nodo, const char* id_pedido);
 
-    // --- NUEVO HELPER DE ESTADÍSTICAS ---
+    // Helper de estadísticas
     void recolectarEstadisticas(NodoLibreria* nodo,
                                 int& maxPedidosLib, int& idLibMax, char* locLibMax,
                                 RegistroConteo* libros, int& numLibros,
@@ -99,7 +99,7 @@ public:
     void mostrar();
     void distribuirPedido(Pedido p);
 
-    // Función modificada para mostrar el reporte completo
+    // Función para mostrar el reporte completo
     void mostrarEstadisticas();
 
     bool estaVacia();
