@@ -46,11 +46,11 @@ int main() {
         bufferPedidos[i].id_libreria = idsValidos[rand() % N_LIBRERIAS];
 
         // --- FILA DE LA TABLA ---
-        cout << "|" << right << setw(11) << bufferPedidos[i].id_libreria << " " // ID Libreria alineado a la dcha
+        cout << "|" << right << setw(11) << bufferPedidos[i].id_libreria << " "
              << "|" << left  << setw(10) << bufferPedidos[i].id_pedido
              << "|" << setw(10) << bufferPedidos[i].cod_libro
              << "|" << setw(15) << bufferPedidos[i].materia
-             << "|" << right << setw(8) << bufferPedidos[i].unidades << " " // Unidades alineado a la dcha
+             << "|" << right << setw(8) << bufferPedidos[i].unidades << " "
              << "|" << left  << setw(12) << bufferPedidos[i].fecha_envio << "|" << endl;
     }
     cout << "---------------------------------------------------------------------------" << endl;
@@ -111,7 +111,7 @@ int main() {
                     cout << " [ERROR] Ya existe una libreria con el ID " << l.id_libreria << "." << endl;
                 } else {
                     cout << "Localidad (una sola palabra, use guiones bajos_si_necesario): ";
-                    cin >> l.localidad; // Ojo: cin corta en los espacios
+                    cin >> l.localidad;
                     arbolReal.insertar(l);
                     cout << "Libreria insertada correctamente." << endl;
                 }

@@ -261,7 +261,6 @@ void ABBLibrerias::borrar(NodoLibreria*& nodo, int id) {
             nodo->datos.id_libreria = minRight->datos.id_libreria;
             strcpy(nodo->datos.localidad, minRight->datos.localidad);
 
-            // --- TRUCO PARA COPIAR LA LISTA ---
             // Como no podemos asignar listas directamente sin un operador= seguro,
             // vaciamos la lista del nodo actual y copiamos los elementos del sucesor.
 
