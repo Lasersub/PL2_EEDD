@@ -1,10 +1,11 @@
 #include "ccontrol.h"
 
 // ============================================================================
-// FUNCIONES AUXILIARES (GENERADORES ALEATORIOS)
+//  SECCION 1: FUNCIONES AUXILIARES (GENERADORES)
 // ============================================================================
-// Estas funciones no suelen ser el foco del examen, pero es bueno saber que
-// usan rand() y sprintf para formatear cadenas (ej: P00012).
+// NOTA EXAMEN: Estas funciones usan aritmética de punteros y rand().
+// rand() % N genera un número entre 0 y N-1.
+// sprintf(buffer, formato, variables...) escribe en una cadena de char.
 
 int generarIdLibreria() {
     return rand() % 900 + 100; // Genera numero entre 100 y 999
@@ -13,16 +14,19 @@ int generarIdLibreria() {
 void generarIdPedido(char* buffer) {
     // sprintf imprime dentro de un string en lugar de en la consola.
     // %05d rellena con ceros a la izquierda si el numero es pequeño.
+    // %05d: Entero con 5 dígitos, rellena con ceros a la izquierda (ej: 00123)
     sprintf(buffer, "P%05d", rand() % 100000);
 }
 
 void generarCodLibro(char* buffer) {
-    char letra = 'A' + rand() % 26; // Genera una letra mayuscula aleatoria
+    // 'A' + rand()%26 genera una letra mayúscula aleatoria ASCII
+    char letra = 'A' + rand() % 26;
     sprintf(buffer, "%03d%c%02d", rand() % 1000, letra, rand() % 100);
 }
 
 void generarMateria(char* buffer) {
     const char* materias[] = {"Matematicas", "Fisica", "Tecnologia", "Musica", "Historia", "Lengua"};
+    // strcpy copia el contenido de un string a un array de char
     strcpy(buffer, materias[rand() % 6]);
 }
 
@@ -43,7 +47,7 @@ void generarLocalidad(char* buffer) {
 // Crea un objeto Pedido y rellena sus campos llamando a las funciones de arriba
 Pedido generarPedidoAleatorio() {
     Pedido p;
-    p.id_libreria = 0; // Se asignará luego en el main al asociarlo a una librería
+    p.id_libreria = 0; // Se inicializa a 0, se asignará la real al insertar en el árbol
     generarIdPedido(p.id_pedido);
     generarCodLibro(p.cod_libro);
     generarMateria(p.materia);
@@ -56,36 +60,38 @@ Libreria generarLibreriaAleatoria() {
     Libreria l;
     l.id_libreria = generarIdLibreria();
     generarLocalidad(l.localidad);
-    // IMPORTANTE: No hace falta inicializar 'l.pedidos' aquí porque
-    // el constructor de la clase ListaPedidos se llama automáticamente.
+    // IMPORTANTE: No hace falta inicializar l.pedidos porque el constructor de la clase
+    // ListaPedidos se invoca automáticamente al crear el objeto 'l'
     return l;
 }
 
 // ============================================================================
 // IMPLEMENTACIÓN DE LISTA ENLAZADA (ListaPedidos)
 // ============================================================================
-// CLAVE EXAMEN: Manejo de punteros 'sig', 'cabecera' y 'cola'.
+// CLAVE: Manejo de punteros 'sig', 'cabecera' y 'cola'.
 
+// CONSTRUCTOR
 ListaPedidos::ListaPedidos() {
-    // Estado inicial: lista vacía
+    // Estado inicial: lista vacía. Siempre inicializar punteros a NULL para evitar basura.
     cabecera = NULL;
     cola = NULL;
 }
 
-// DESTRUCTOR: Libera memoria. Fundamental para evitar fugas (Memory Leaks).
+// DESTRUCTOR: Libera memoria ("Gestión de memoria"). Fundamental para evitar fugas (Memory Leaks).
+// Recorre la lista y libera cada nodo con 'delete'.
 ListaPedidos::~ListaPedidos() {
     NodoPedido* aux = cabecera;
     while (aux != NULL) {
         NodoPedido* borrar = aux; // Guardamos puntero al nodo actual
-        aux = aux->sig;           // Avanzamos aux antes de borrar
-        delete borrar;            // Borramos el nodo guardado
+        aux = aux->sig;           // Avanzamos aux antes de borrar (salvar el puente)
+        delete borrar;            // Borramos el nodo guardado. LIBERA MEMORIA HEAP.
     }
 }
 
 // INSERTAR AL FINAL (Cola)
 // Complejidad O(1) gracias al puntero 'cola'.
 void ListaPedidos::insertar(Pedido p) {
-    NodoPedido* nuevo = new NodoPedido; // 1. Reservar memoria
+    NodoPedido* nuevo = new NodoPedido; // 1. Reservar memoria dinámica
     nuevo->datos = p;                   // 2. Copiar datos
     nuevo->sig = NULL;                  // 3. El nuevo será el último, así que apunta a NULL
 
@@ -100,16 +106,17 @@ void ListaPedidos::insertar(Pedido p) {
     }
 }
 
-// BORRAR ELEMENTO DE LISTA
-// CLAVE EXAMEN: Hay dos casos, borrar el primero (cabecera) o uno intermedio/final.
+// BORRAR ELEMENTO DE LISTA (BORRAR UN NODO ESPECÍFICO)
+// CLAVE: Hay dos casos, borrar el primero (cabecera) o uno intermedio/final. Manejo de punteros para "saltar" un nodo (puenteado).
 void ListaPedidos::borrar(const char* id_pedido) {
     if (cabecera == NULL) return; // Lista vacía, nada que hacer
 
     // CASO 1: Borrar el primer nodo (Cabecera)
+    // strcmp devuelve 0 si son iguales
     if (strcmp(cabecera->datos.id_pedido, id_pedido) == 0) {
         NodoPedido* borrar = cabecera;
         cabecera = cabecera->sig;     // Movemos cabecera al siguiente
-        if (cabecera == NULL) cola = NULL; // Si la lista quedó vacía, actualizamos cola
+        if (cabecera == NULL) cola = NULL; // Si la lista quedó vacía, actualizamos cola, cola también es NULL
         delete borrar;                // Liberamos memoria
         return;
     }
@@ -123,16 +130,16 @@ void ListaPedidos::borrar(const char* id_pedido) {
 
     if (actual->sig != NULL) { // Si paramos porque lo encontramos (no porque llegamos al final)
         NodoPedido* borrar = actual->sig; // Este es el que queremos eliminar
-        actual->sig = borrar->sig;        // Saltamos el nodo a borrar
+        actual->sig = borrar->sig;        // Saltamos el nodo a borrar. PUENTE: El anterior apunta al siguiente del borrado
 
-        // Si borramos el último, hay que actualizar 'cola'
+        // Si borramos el último, actualizamos 'cola' para que apunte al anterior
         if (actual->sig == NULL) cola = actual;
 
         delete borrar; // Liberamos memoria
     }
 }
 
-// BÚSQUEDA SECUENCIAL
+// BÚSQUEDA SECUENCIAL (O(n))
 NodoPedido* ListaPedidos::buscar(const char* id_pedido) {
     NodoPedido* actual = cabecera;
     while (actual != NULL) {
@@ -161,7 +168,7 @@ void ListaPedidos::mostrar() {
         return;
     }
 
-    // Formato de tabla para la lista
+    // Formato de tabla para la lista. setw(n) fija el ancho. left/right alinea.
     cout << "   --------------------------------------------------------------" << endl;
     cout << "   |" << left << setw(10) << "ID Pedido"
          << "|" << setw(10) << "Cod Libro"
@@ -197,7 +204,7 @@ NodoPedido* ListaPedidos::extraer(const char* id_pedido) {
         encontrado = cabecera;
         cabecera = cabecera->sig;
         if (cabecera == NULL) cola = NULL;
-        encontrado->sig = NULL; // Desconectamos el nodo extraído
+        encontrado->sig = NULL; // Desconectamos el nodo extraído. Desconectar para que no arrastre la lista
         return encontrado;
     }
 
@@ -222,10 +229,45 @@ NodoPedido* ListaPedidos::getCabecera() {
     return cabecera;
 }
 
+
+// ***************************
+// *** PLANTILLA (LISTAS)  ***
+// ***************************
+// "Recorre la lista y suma unidades", "Borra los de Fisica", etc.
+// Copia esta lógica.
+/*
+void ListaPedidos::funcionAuxiliarExamen() {
+    NodoPedido* actual = cabecera;
+    // Variables acumuladoras (si te piden contar o sumar)
+    int contador = 0;
+    int suma = 0;
+
+    while (actual != NULL) {
+        // --- ZONA DE ACCESO A DATOS ---
+        // actual->datos.id_pedido (char*)
+        // actual->datos.materia (char*)
+        // actual->datos.unidades (int)
+
+        // --- ZONA DE LOGICA (Condicionales) ---
+        // Ej: Contar solo libros de Fisica con mas de 5 unidades
+        if (strcmp(actual->datos.materia, "Fisica") == 0 && actual->datos.unidades > 5) {
+             contador++;
+             suma += actual->datos.unidades;
+             // cout << "Encontrado: " << actual->datos.id_pedido << endl;
+        }
+
+        // Avanzar siempre al final del bucle
+        actual = actual->sig;
+    }
+    // Retornar o imprimir resultados
+}
+*/
+
+
 // ============================================================================
 // IMPLEMENTACIÓN DE ÁRBOL BINARIO DE BÚSQUEDA (ABBLibrerias)
 // ============================================================================
-// CLAVE EXAMEN: Recursividad y paso de punteros por referencia (NodoLibreria*&).
+// CLAVE: Recursividad y paso de punteros por referencia (NodoLibreria*&).
 
 ABBLibrerias::ABBLibrerias() {
     raiz = NULL;
@@ -236,7 +278,7 @@ ABBLibrerias::~ABBLibrerias() {
 }
 
 // Recorrido POST-ORDEN para borrar (Izq -> Der -> Raiz)
-// Es necesario borrar los hijos antes que el padre.
+// Es necesario borrar los hijos antes que el padre. Evita referencias rotas.
 void ABBLibrerias::borrarTodo(NodoLibreria* nodo) {
     if (nodo != NULL) {
         borrarTodo(nodo->izq);
@@ -252,6 +294,7 @@ void ABBLibrerias::insertar(Libreria lib) {
 
 // Función recursiva de inserción
 // IMPORTANTE: 'NodoLibreria*& nodo' -> Paso por referencia del puntero.
+// Uso de referencia (NodoLibreria*& nodo) para modificar el puntero original.
 // Permite modificar 'raiz' o 'nodo->izq' directamente.
 void ABBLibrerias::insertar(NodoLibreria*& nodo, Libreria lib) {
     if (nodo == NULL) {
@@ -274,7 +317,7 @@ void ABBLibrerias::borrar(int id_libreria) {
     borrar(raiz, id_libreria);
 }
 
-// CLAVE EXAMEN: Borrado en ABB (los 3 casos)
+// CLAVE: Borrado en ABB (los 3 casos)
 void ABBLibrerias::borrar(NodoLibreria*& nodo, int id) {
     if (nodo == NULL) return; // No encontrado
 
@@ -312,6 +355,8 @@ void ABBLibrerias::borrar(NodoLibreria*& nodo, int id) {
 
             // COMPLICACIÓN: Como tenemos una Lista dentro, no basta copiar punteros.
             // Hay que mover los datos de la lista del sucesor aquí.
+            // COPIA PROFUNDA DE LA LISTA
+            // No podemos hacer nodo->lista = minRight->lista porque compartirían memoria.
 
             // 1. Limpiamos la lista actual
             while (!nodo->datos.pedidos.estaVacia()) {
@@ -356,14 +401,15 @@ void ABBLibrerias::mostrar() {
 // Imprime los elementos ordenados de menor a mayor ID.
 void ABBLibrerias::mostrar(NodoLibreria* nodo) {
     if (nodo != NULL) {
-        mostrar(nodo->izq);
+        mostrar(nodo->izq); // 1. Izquierda
 
+        // 2. Proceso (Imprimir)
         int numPedidos = nodo->datos.pedidos.getNumeroPedidos();
         cout << "ID: " << left << setw(5) << nodo->datos.id_libreria
              << " Localidad: " << setw(15) << nodo->datos.localidad
              << " Num Pedidos: " << numPedidos << endl;
 
-        mostrar(nodo->der);
+        mostrar(nodo->der); // 3. Derecha
     }
 }
 
@@ -371,6 +417,7 @@ void ABBLibrerias::mostrar(NodoLibreria* nodo) {
 // LÓGICA DE ESTADÍSTICAS (ACUMULADORES)
 // ============================================================================
 
+// Ejemplo de cómo recorrer TODO el árbol acumulando datos globales.
 void ABBLibrerias::mostrarEstadisticas() {
     if (raiz == NULL) {
         cout << "El arbol esta vacio." << endl;
@@ -394,6 +441,7 @@ void ABBLibrerias::mostrarEstadisticas() {
     recolectarEstadisticas(raiz, maxPedidosLib, idLibMax, locLibMax, listaLibros, numLibros, listaMaterias, numMaterias);
 
     // --- MOSTRAR RESULTADOS ---
+    // ... (Logica de buscar maximos en arrays temporales) ...
     // 1. Librería Top
     cout << "1. LIBRERIA CON MAS VENTAS:" << endl;
     cout << "   ID: " << idLibMax << " (" << locLibMax << ")" << endl;
@@ -436,6 +484,9 @@ void ABBLibrerias::recolectarEstadisticas(NodoLibreria* nodo,
         recolectarEstadisticas(nodo->izq, maxPedidosLib, idLibMax, locLibMax, libros, numLibros, materias, numMaterias);
 
         // 2. PROCESAR NODO ACTUAL
+        // --- ZONA DE PROCESAMIENTO DE UN NODO ---
+        // Aquí accedemos a: nodo->datos (Libreria)
+        // Y a su lista: nodo->datos.pedidos
 
         // A) ¿Es esta la librería con más pedidos?
         int totalPedidos = nodo->datos.pedidos.getNumeroPedidos();
@@ -445,7 +496,7 @@ void ABBLibrerias::recolectarEstadisticas(NodoLibreria* nodo,
             strcpy(locLibMax, nodo->datos.localidad);
         }
 
-        // B) Recorrer la lista de pedidos de ESTA librería
+        // B) Recorrer la lista de pedidos de ESTA librería para contar materias/libros
         NodoPedido* aux = nodo->datos.pedidos.getCabecera();
         while (aux != NULL) {
             // Acumular LIBRO: Buscamos si ya existe en el array 'libros'
@@ -520,6 +571,7 @@ Pedido* ABBLibrerias::buscarPedido(const char* id_pedido) {
 }
 
 // Versión recursiva: Preorden (Raiz -> Izq -> Der) para buscar rápido
+// Busca en el nodo actual, si no está, busca en hijos.
 Pedido* ABBLibrerias::buscarPedido(NodoLibreria* nodo, const char* id_pedido) {
     if (nodo == NULL) return NULL;
 
@@ -553,3 +605,111 @@ bool ABBLibrerias::borrarPedido(NodoLibreria* nodo, const char* id_pedido) {
     if (borrarPedido(nodo->izq, id_pedido)) return true;
     return borrarPedido(nodo->der, id_pedido);
 }
+
+// ****************************
+// *** PLANTILLA (ARBOLES)  ***
+// ****************************
+// "Calcula el total de unidades de todos los pedidos del arbol",
+// "Muestra librerias de Madrid", etc.
+/*
+void ABBLibrerias::funcionAuxiliarArbol(NodoLibreria* nodo) {
+    if (nodo != NULL) {
+        // --- PROCESADO PRE-ORDEN (Antes de bajar) ---
+
+        // --- BAJAR IZQUIERDA ---
+        funcionAuxiliarArbol(nodo->izq);
+
+        // --- PROCESADO IN-ORDEN (Entre medias) ---
+        // Ideal para recorrer ordenado por ID o acumular datos.
+        // Acceso: nodo->datos.localidad, nodo->datos.pedidos...
+
+        // EJEMPLO: Mostrar solo si es de "Madrid"
+        // if (strcmp(nodo->datos.localidad, "Madrid") == 0) { ... }
+
+        // EJEMPLO: Recorrer lista interna
+        // NodoPedido* aux = nodo->datos.pedidos.getCabecera();
+        // while(aux!=NULL) { ... aux=aux->sig; }
+
+        // --- BAJAR DERECHA ---
+        funcionAuxiliarArbol(nodo->der);
+
+        // --- PROCESADO POST-ORDEN (Al subir) ---
+        // Ideal para borrar nodos.
+    }
+}
+*/
+
+// ********************************************************
+// *** ALGORITMOS RECURSIVOS CLASICOS (PARA EL EXAMEN)  ***
+// ********************************************************
+
+// 1. CALCULAR LA ALTURA DEL ARBOL
+// La altura es el camino más largo desde la raíz hasta una hoja.
+/*
+int ABBLibrerias::calcularAltura(NodoLibreria* nodo) {
+    if (nodo == NULL) return 0; // Árbol vacío tiene altura 0 (o -1 según teoría)
+
+    int alturaIzq = calcularAltura(nodo->izq);
+    int alturaDer = calcularAltura(nodo->der);
+
+    // Retornamos el mayor de los dos lados + 1 (el nodo actual)
+    if (alturaIzq > alturaDer)
+        return alturaIzq + 1;
+    else
+        return alturaDer + 1;
+}
+*/
+
+// 2. CONTAR NODOS HOJA (Nodos sin hijos)
+/*
+int ABBLibrerias::contarHojas(NodoLibreria* nodo) {
+    if (nodo == NULL) return 0;
+
+    // Si no tengo hijos, soy una hoja -> Cuento 1
+    if (nodo->izq == NULL && nodo->der == NULL) return 1;
+
+    // Si tengo hijos, sumo las hojas de mis ramas
+    return contarHojas(nodo->izq) + contarHojas(nodo->der);
+}
+*/
+
+// 3. FILTRADO CONBORRADO EN LISTA (Borrar nodos que cumplan condicion X)
+// Esto es mas dificil que borrar por ID porque hay que seguir iterando.
+/*
+void ListaPedidos::borrarSiUnidadesMenorQue(int cantidad) {
+    NodoPedido* actual = cabecera;
+    NodoPedido* anterior = NULL;
+
+    while (actual != NULL) {
+        if (actual->datos.unidades < cantidad) {
+            // --- BORRADO ---
+            NodoPedido* aBorrar = actual;
+
+            // Caso: Borrar cabecera
+            if (actual == cabecera) {
+                cabecera = actual->sig;
+                actual = cabecera; // Avanzamos actual
+                if (cabecera == NULL) cola = NULL;
+            }
+            // Caso: Borrar intermedio/final
+            else {
+                anterior->sig = actual->sig;
+                if (actual == cola) cola = anterior; // Actualizar cola si borramos ultimo
+                actual = actual->sig; // Avanzamos actual
+            }
+
+            delete aBorrar;
+            // IMPORTANTE: No avanzamos 'anterior' porque hemos borrado el nodo
+        } else {
+            // --- AVANCE NORMAL ---
+            anterior = actual;
+            actual = actual->sig;
+        }
+    }
+}
+*/
+
+// Funcion buscar ----> función buscar o buscarPedido
+// Funcion Recorre la lista y suma precios -----> PLANTILLA (LISTAS)
+// Funcion Calcula la profundidad/altura/hojas.. -----> Algoritmos recursivos clasicos
+// Borra todos los pedidos de Matemáticas -------> borrarSiUnidadesMenorQue
